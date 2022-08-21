@@ -1,8 +1,10 @@
 <script lang="ts" setup>
 import { D3Dom, Vector2d } from '@/types/d3'
+import { Times } from '@/utils/const'
 import { useEventListener, useFps, useResizeObserver } from '@vueuse/core'
 import * as d3 from 'd3'
-import { onMounted, ref } from 'vue'
+import { throttle } from 'lodash-es'
+import { onMounted, ref, watch } from 'vue'
 import { SvgInstance } from './d3-instance'
 import { useFrameRender } from './useFrameRender'
 
@@ -13,6 +15,7 @@ let fighter: SvgInstance<'path'> | null = null
 const operations = ['w', 'a', 's', 'd']
 
 const maxSize = ref({ width: 0, height: 0 })
+const step = ref(0)
 
 const { changeRenderStatus, pushMission, removeMission } = useFrameRender()
 const fps = useFps()
@@ -31,19 +34,18 @@ useEventListener('keydown', ev => {
     return
   }
   const newPosition: Vector2d = { x: 0, y: 0 }
-  const step = 10
   switch (ev.key) {
     case 'w':
-      newPosition.y = -step
+      newPosition.y = -step.value
       break
     case 's':
-      newPosition.y = step
+      newPosition.y = step.value
       break
     case 'a':
-      newPosition.x = -step
+      newPosition.x = -step.value
       break
     case 'd':
-      newPosition.x = step
+      newPosition.x = step.value
       break
     default:
       return
@@ -93,6 +95,20 @@ function initPlayer() {
     stroke: '#000',
     'stroke-width': 1
   })
+}
+
+watch(fps, throttle(setStepByFps, Times.SECOND * 0.5), { immediate: true })
+
+function setStepByFps() {
+  if (!fps.value) return
+
+  if (fps.value >= 200) {
+    step.value = 1
+  } else if (fps.value >= 120) {
+    step.value = 3
+  } else {
+    step.value = 10
+  }
 }
 
 onMounted(() => {
