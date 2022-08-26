@@ -97,17 +97,19 @@ function initPlayer() {
   })
 }
 
-watch(fps, throttle(setStepByFps, Times.SECOND * 0.5), { immediate: true })
+watch(fps, throttle(setStepByFps, Times.SECOND * 1))
 
 function setStepByFps() {
   if (!fps.value) return
 
-  if (fps.value >= 200) {
+  if (fps.value >= 300) {
+    step.value = 0.5
+  } else if (fps.value >= 200) {
     step.value = 1
   } else if (fps.value >= 120) {
     step.value = 3
   } else {
-    step.value = 10
+    step.value = 5
   }
 }
 
