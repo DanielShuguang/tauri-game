@@ -5,6 +5,7 @@ import { useEventListener, useFps, useResizeObserver } from '@vueuse/core'
 import * as d3 from 'd3'
 import { throttle } from 'lodash-es'
 import { onMounted, ref, watch } from 'vue'
+import { Bullet } from './bullet'
 import { SvgInstance } from './d3-instance'
 import { useFrameRender } from './useFrameRender'
 
@@ -16,6 +17,7 @@ const operations = ['w', 'a', 's', 'd']
 
 const maxSize = ref({ width: 0, height: 0 })
 const step = ref(0)
+const isRunning = ref(false)
 
 const { changeRenderStatus, pushMission, removeMission } = useFrameRender()
 const fps = useFps()
@@ -95,6 +97,31 @@ function initPlayer() {
     stroke: '#000',
     'stroke-width': 1
   })
+
+  generateBulletForFighter()
+}
+
+function generateBulletForFighter() {
+  if (!fighterGroup || !svg) return
+  const position = fighterGroup.currentPosition
+  const bullet = new Bullet(
+    svg,
+    { x: position.x + 13, y: position.y - 10 },
+    { x: 0, y: -(step.value || 10) * 1.5 }
+  )
+  pushMission(() => {
+    bullet.shootting()
+    if (bullet.currentPosition.y <= 0) {
+      removeMission(bullet.bulletUniqueKey)
+      bullet.destroy()
+    }
+  }, bullet.bulletUniqueKey)
+
+  if (!isRunning.value) return
+
+  setTimeout(() => {
+    generateBulletForFighter()
+  }, 200)
 }
 
 watch(fps, throttle(setStepByFps, Times.SECOND * 1))
@@ -114,6 +141,7 @@ function setStepByFps() {
 }
 
 onMounted(() => {
+  isRunning.value = true
   initGame()
   initPlayer()
   changeRenderStatus(true)
