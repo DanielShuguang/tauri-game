@@ -4,13 +4,14 @@ import { Times } from '@/utils/const'
 import { useEventListener, useFps, useResizeObserver } from '@vueuse/core'
 import * as d3 from 'd3'
 import { throttle } from 'lodash-es'
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { Bullet } from './bullet'
 import { SvgInstance } from './d3-instance'
 import { useFrameRender } from './useFrameRender'
+import { useGenerateEnemy } from './useGenerateEnemy'
 
 let root: D3Dom<HTMLDivElement> | null = null
-let svg: D3Dom<SVGSVGElement> | null = null
+let svg = ref<D3Dom<SVGSVGElement> | null>(null)
 let fighterGroup: SvgInstance<'g'> | null = null
 let fighter: SvgInstance<'path'> | null = null
 const operations = ['w', 'a', 's', 'd']
@@ -24,12 +25,25 @@ const fps = useFps()
 useResizeObserver(
   document.body,
   () => {
-    if (!svg) return
-    const width = parseInt(svg.style('width')) || 0
-    const height = parseInt(svg.style('height')) || 0
+    if (!svg.value) return
+    const width = parseInt(svg.value.style('width')) || 0
+    const height = parseInt(svg.value.style('height')) || 0
     maxSize.value = { width, height }
   },
   { box: 'border-box' }
+)
+const { enemies } = useGenerateEnemy(
+  isRunning,
+  svg,
+  computed(() => [
+    { x: 0, y: 0 },
+    { x: maxSize.value.width, y: maxSize.value.height }
+  ])
+)
+pushMission(
+  throttle(() => {
+    enemies.value.forEach(el => el.autoMove())
+  }, 20)
 )
 useEventListener('keydown', ev => {
   if (!operations.includes(ev.key) || !fighterGroup) {
@@ -74,11 +88,11 @@ useEventListener('keyup', ev => {
 
 function initGame() {
   root = d3.select('.flighter')
-  svg = root.append('svg').style('background', '#f0f0f0')
-  const width = parseInt(svg.style('width')) || 0
-  const height = parseInt(svg.style('height')) || 0
+  svg.value = root.append('svg').style('background', '#f0f0f0')
+  const width = parseInt(svg.value.style('width')) || 0
+  const height = parseInt(svg.value.style('height')) || 0
   maxSize.value = { width, height }
-  fighterGroup = new SvgInstance('g', svg, {
+  fighterGroup = new SvgInstance('g', svg.value, {
     x: width / 2,
     y: height - 40
   })
@@ -102,10 +116,10 @@ function initPlayer() {
 }
 
 function generateBulletForFighter() {
-  if (!fighterGroup || !svg) return
+  if (!fighterGroup || !svg.value) return
   const position = fighterGroup.currentPosition
   const bullet = new Bullet(
-    svg,
+    svg.value,
     { x: position.x + 13, y: position.y - 10 },
     { x: 0, y: -(step.value || 10) * 1.5 }
   )
