@@ -4,7 +4,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/fighter',
     name: 'fighter',
-    component: () => import('@/components/fighter/index.vue'),
+    component: () => import('@/views/fighter/index.vue'),
     meta: {
       title: '飞机大战'
     }
@@ -12,7 +12,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/snake',
     name: 'snake',
-    component: () => import('@/components/snake/index.vue'),
+    component: () => import('@/views/snake/index.vue'),
     meta: {
       title: '贪吃蛇'
     }
