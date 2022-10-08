@@ -1,10 +1,11 @@
 <script lang="ts" setup>
 import { D3Dom, Vector2d } from '@/types/d3'
+import { fpsKey } from '@/types/uniqueKeys'
 import { Times } from '@/utils/const'
-import { useEventListener, useFps, useResizeObserver } from '@vueuse/core'
+import { useEventListener, useResizeObserver } from '@vueuse/core'
 import * as d3 from 'd3'
 import { throttle } from 'lodash-es'
-import { computed, onMounted, ref, watch } from 'vue'
+import { inject, onMounted, ref, watch, computed } from 'vue'
 import { Bullet } from './bullet'
 import { SvgInstance } from './d3-instance'
 import { useFrameRender } from './useFrameRender'
@@ -21,7 +22,7 @@ const step = ref(0)
 const isRunning = ref(false)
 
 const { changeRenderStatus, pushMission, removeMission } = useFrameRender()
-const fps = useFps()
+const fps = inject(fpsKey, ref(0))
 useResizeObserver(
   document.body,
   () => {
@@ -163,19 +164,11 @@ onMounted(() => {
 </script>
 
 <template>
-  <span class="fps-watcher">FPS: {{ fps }}</span>
   <div class="flighter"></div>
 </template>
 
 <style scoped lang="scss">
-.fps-watcher {
-  position: fixed;
-  top: 10px;
-  right: 10px;
-  z-index: 10;
-}
 .flighter {
-  width: 100%;
   height: 100%;
   box-sizing: border-box;
   overflow: hidden;
