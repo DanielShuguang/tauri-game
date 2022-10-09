@@ -1,19 +1,21 @@
 <script lang="ts" setup>
 import { Direction } from '@/types/base'
-import { D3Dom } from '@/types/d3'
+import { D3Dom, Vector2d } from '@/types/d3'
 import { Times } from '@/utils/const'
+import { randomInteger } from '@/utils/random'
 import { useEventListener } from '@vueuse/core'
 import * as d3 from 'd3'
-import { cloneDeep } from 'lodash-es'
+import { cloneDeep, isEqual } from 'lodash-es'
 import { onMounted, ref, shallowRef } from 'vue'
 import { SvgInstance } from '../fighter/d3-instance'
 
 const root = shallowRef<D3Dom<HTMLDivElement> | null>(null)
 const svg = shallowRef<D3Dom<SVGSVGElement> | null>(null)
 const map = shallowRef<SvgInstance<'rect'>[]>([])
-const missions = shallowRef<Map<string, () => void>>(new Map())
+const missions = shallowRef(new Map<string, () => void>())
 const maxSize = ref({ width: 0, height: 0 })
 const direction = ref<Direction>('right')
+// 地图横竖方向上的总步数
 const mapSteps = ref({ x: 0, y: 0 })
 // 坐标偏转距离
 const deflection = ref({ x: 0, y: 0 })
@@ -21,6 +23,10 @@ const snakesBody = shallowRef<SvgInstance<'circle'>[]>([])
 const intervalTime = ref(Times.SECOND * 1)
 const isHighSpeed = ref(false)
 const operations = ['w', 'a', 's', 'd', ' ']
+const foodInfo = ref({
+  exist: false,
+  instance: <SvgInstance<'circle'> | null>null
+})
 const step = 50
 
 function initGame() {
@@ -33,6 +39,7 @@ function initGame() {
   initMap()
   initSnakeBody()
   operationWatcher()
+  missions.value.set('food-gen', foodGenerator)
 }
 
 /**
@@ -95,7 +102,10 @@ function bodyMovement() {
     for (let i = 0; i < len; i++) {
       const snake = snakesBody.value[i]
       snake.originalFn(el => {
-        el.style('transition', `all ${intervalTime.value / Times.SECOND}s ease`)
+        el.style(
+          'transition',
+          `all ${intervalTime.value / Times.SECOND}s linear`
+        )
       })
       let pos = { x: 0, y: 0 }
       if (i === 0) {
@@ -124,10 +134,10 @@ function bodyMovement() {
           break
         }
       } else {
-        pos = cloneDeep({
+        pos = {
           x: lastPos.x - snake.currentPosition.x,
           y: lastPos.y - snake.currentPosition.y
-        })
+        }
       }
       lastPos = cloneDeep(snake.currentPosition)
       snake.moving(pos)
@@ -165,6 +175,30 @@ function operationWatcher() {
       intervalTime.value *= 5
     }
   })
+}
+
+/**
+ * 生成食物
+ */
+function foodGenerator() {
+  if (!svg.value || foodInfo.value.exist) return
+
+  const positions = snakesBody.value.map(body => body.currentPosition)
+  let isExist = true
+  while (isExist) {
+    const foodPosition: Vector2d = {
+      x: randomInteger(mapSteps.value.x, 1) * step + deflection.value.x,
+      y: randomInteger(mapSteps.value.y, 1) * step + deflection.value.y
+    }
+    isExist = positions.some(p => isEqual(foodPosition, p))
+    if (!isExist) {
+      foodInfo.value = {
+        exist: true,
+        instance: new SvgInstance('circle', svg.value, foodPosition)
+      }
+      break
+    }
+  }
 }
 
 /**

@@ -5,14 +5,14 @@ import { Times } from '@/utils/const'
 import { useEventListener, useResizeObserver } from '@vueuse/core'
 import * as d3 from 'd3'
 import { throttle } from 'lodash-es'
-import { inject, onMounted, ref, watch, computed } from 'vue'
+import { inject, onMounted, ref, watch, computed, shallowRef } from 'vue'
 import { Bullet } from './bullet'
 import { SvgInstance } from './d3-instance'
 import { useFrameRender } from './useFrameRender'
 import { useGenerateEnemy } from './useGenerateEnemy'
 
 let root: D3Dom<HTMLDivElement> | null = null
-let svg = ref<D3Dom<SVGSVGElement> | null>(null)
+let svg = shallowRef<D3Dom<SVGSVGElement> | null>(null)
 let fighterGroup: SvgInstance<'g'> | null = null
 let fighter: SvgInstance<'path'> | null = null
 const operations = ['w', 'a', 's', 'd']
