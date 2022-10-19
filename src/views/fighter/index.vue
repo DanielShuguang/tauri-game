@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { Nullable } from '@/types/base'
 import { D3Dom, Vector2d } from '@/types/d3'
 import { fpsKey } from '@/types/uniqueKeys'
 import { Times } from '@/utils/const'
@@ -11,10 +12,10 @@ import { SvgInstance } from './d3-instance'
 import { useFrameRender } from './useFrameRender'
 import { useGenerateEnemy } from './useGenerateEnemy'
 
-let root: D3Dom<HTMLDivElement> | null = null
-let svg = shallowRef<D3Dom<SVGSVGElement> | null>(null)
-let fighterGroup: SvgInstance<'g'> | null = null
-let fighter: SvgInstance<'path'> | null = null
+let root: Nullable<D3Dom<HTMLDivElement>> = null
+let svg = shallowRef<Nullable<D3Dom<SVGSVGElement>>>(null)
+let fighterGroup: Nullable<SvgInstance<'g'>> = null
+let fighter: Nullable<SvgInstance<'path'>> = null
 const operations = ['w', 'a', 's', 'd']
 
 const maxSize = ref({ width: 0, height: 0 })

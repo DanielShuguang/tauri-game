@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Direction } from '@/types/base'
+import { Direction, Nullable } from '@/types/base'
 import { D3Dom, Vector2d } from '@/types/d3'
 import { Times } from '@/utils/const'
 import { randomInteger } from '@/utils/random'
@@ -9,8 +9,8 @@ import { cloneDeep, isEqual } from 'lodash-es'
 import { onMounted, ref, shallowRef } from 'vue'
 import { SvgInstance } from '../fighter/d3-instance'
 
-const root = shallowRef<D3Dom<HTMLDivElement> | null>(null)
-const svg = shallowRef<D3Dom<SVGSVGElement> | null>(null)
+const root = shallowRef<Nullable<D3Dom<HTMLDivElement>>>(null)
+const svg = shallowRef<Nullable<D3Dom<SVGSVGElement>>>(null)
 const map = shallowRef<SvgInstance<'rect'>[]>([])
 const missions = shallowRef(new Map<string, () => void>())
 const maxSize = ref({ width: 0, height: 0 })
@@ -25,7 +25,7 @@ const isHighSpeed = ref(false)
 const operations = ['w', 'a', 's', 'd', ' ']
 const foodInfo = ref({
   exist: false,
-  instance: <SvgInstance<'circle'> | null>null
+  instance: <Nullable<SvgInstance<'circle'>>>null
 })
 const step = 50
 
